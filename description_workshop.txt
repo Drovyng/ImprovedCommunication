@@ -1,0 +1,9 @@
+[h1]What that mod does?[/h1]
+
+[h2]Improved markers on the map[/h2]
+[b][i]Now you can add not temporary markers and fully customize them.[/i][/b]
+[img]https://i.imgur.com/2pFfo2D.gif[/img]
+[h2]Added visibility of other players' cursors[/h2]
+[b][i]TIP: you can change their texture[/i][/b]
+[h2]Also please check the config[/h2]
+[img]https://i.imgur.com/PxW3jIE.png[/img]
