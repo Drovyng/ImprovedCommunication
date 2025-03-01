@@ -1,0 +1,3 @@
+displayName = Better Communication
+author = Drovyng
+version = 0.1

@@ -1,0 +1,108 @@
+Configs: {
+	ICConfig: {
+		ShowPlayersCursorsNames: {
+			Tooltip: ""
+			Label: Show Names
+		}
+
+		ShowPlayersCursors: {
+			Tooltip: ""
+			Label: Show Players Cursors
+		}
+
+		DisplayName: Config
+
+		ShowPlayersCursorsNamesColored: {
+			Label: Show Names Colored
+			Tooltip: ""
+		}
+
+		ShowPlayersCursorsFriendlyOnly: {
+			Label: Show Friendly Only
+			Tooltip: ""
+		}
+
+		ShowPlayersCursorsScale: {
+			Label: Show Scale
+			Tooltip: ""
+		}
+
+		ShowPlayersCursorsNamesScale: {
+			Label: Show Names Scale
+			Tooltip: ""
+		}
+
+		Headers: {
+			PlayersCursors: Players Cursors
+			MapNMarkers: Map & Markers
+		}
+
+		ShowPlayersCursorsStyle: {
+			Label: Show Style
+			Tooltip: ""
+		}
+
+		ShowInworldMarkers: {
+			Label: Show Inworld Markers
+			Tooltip: ""
+		}
+
+		ShowInworldMarkersNames: {
+			Label: Show Inworld Markers Names
+			Tooltip: ""
+		}
+
+		ShowInworldTextMarkers: {
+			Label: Show Inworld Text Markers
+			Tooltip: ""
+		}
+
+		CorrectMinimapMarkersScale: {
+			Label: Correct Minimap Markers Scale
+			Tooltip: ""
+		}
+
+		CorrectMapMarkersScale: {
+			Label: Correct Map Markers Scale
+			Tooltip: ""
+		}
+
+		ScaleCorrectedOnMap: {
+			Label: Scale Corrected On Map
+			Tooltip: ""
+		}
+
+		ScaleCorrectedOnMinimap: {
+			Label: Scale Corrected On Minimap
+			Tooltip: ""
+		}
+
+		ScaleCorrectedOnFullMap: {
+			Label: Scale Corrected On Full Map
+			Tooltip: ""
+		}
+	}
+
+	CursorsStyle: {
+		Tooltip: ""
+		Classic.Label: Classic
+		Crosshair.Label: Crosshair
+		Target.Label: Target
+	}
+}
+
+FullscreenOldPingsText: Double Click with Control to create a temporary marker
+Apply: Apply
+Delete: Delete
+ApplyInfo: Stop Editing
+DeleteInfo: Delete Marker
+Pulse: Pulse
+ON: ON
+OFF: OFF
+WriteName: Write marker name
+EditingText:
+	'''
+	Double Click To Move
+	Right Click To Apply
+	'''
+EditText: Double Click To Edit

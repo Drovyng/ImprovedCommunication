@@ -1,0 +1,108 @@
+Configs: {
+	ICConfig: {
+		ShowPlayersCursorsNames: {
+			Tooltip: ""
+			Label: Показывать Названия
+		}
+
+		ShowPlayersCursors: {
+			Tooltip: ""
+			Label: Показывать Курсоры Игроков
+		}
+
+		DisplayName: Конфиг
+
+		ShowPlayersCursorsNamesColored: {
+			Label: Показывать Названия С Цветом
+			Tooltip: ""
+		}
+
+		ShowPlayersCursorsFriendlyOnly: {
+			Label: Показывать Только Дружелюбных
+			Tooltip: ""
+		}
+
+		ShowPlayersCursorsScale: {
+			Label: Размер
+			Tooltip: ""
+		}
+
+		ShowPlayersCursorsNamesScale: {
+			Label: Размер Названий
+			Tooltip: ""
+		}
+
+		Headers: {
+			PlayersCursors: Курсоры Игроков
+			MapNMarkers: Карта & Маркеры
+		}
+
+		ShowPlayersCursorsStyle: {
+			Label: Стиль Курсоров
+			Tooltip: ""
+		}
+
+		ShowInworldMarkers: {
+			Label: Показывать Маркеры (В Мире)
+			Tooltip: ""
+		}
+
+		ShowInworldMarkersNames: {
+			Label: Показывать Названий Маркеров (В Мире)
+			Tooltip: ""
+		}
+
+		ShowInworldTextMarkers: {
+			Label: Показывать Текстовые Маркеры (В Мире)
+			Tooltip: ""
+		}
+
+		CorrectMinimapMarkersScale: {
+			// Label: Correct Minimap Markers Scale
+			// Tooltip: ""
+		}
+
+		CorrectMapMarkersScale: {
+			Label: Скорректировать Масштаб Маркеров На Карте
+			Tooltip: ""
+		}
+
+		ScaleCorrectedOnMap: {
+			// Label: Scale Corrected On Map
+			// Tooltip: ""
+		}
+
+		ScaleCorrectedOnMinimap: {
+			Label: Размер Скоррект. Маркеров На Миникарте
+			Tooltip: ""
+		}
+
+		ScaleCorrectedOnFullMap: {
+			Label: Размер Скоррект. Маркеров На Карте
+			Tooltip: ""
+		}
+	}
+
+	CursorsStyle: {
+		Tooltip: ""
+		Classic.Label: Классический
+		Crosshair.Label: Прицел
+		Target.Label: Мишень
+	}
+}
+
+FullscreenOldPingsText: (Двойной Клик) с (Ctrl) для создания временного маркера
+Apply: Применить
+Delete: Удалить
+ApplyInfo: Остановить Редактирование
+DeleteInfo: Удалить Маркер
+Pulse: Пульсация
+ON: ВКЛ
+OFF: ВЫКЛ
+WriteName: Введите название маркера
+EditingText:
+	'''
+	(Двойной Клик) - Переместить
+	(Правый Клик) - Применить
+	'''
+EditText: (Двойной Клик) - Редактирование
