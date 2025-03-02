@@ -184,10 +184,11 @@ namespace ImprovedCommunication
         public override void Draw(ref MapOverlayDrawContext context, ref string text)
         {
             var cfg = ICConfig.Instance;
+            var rect = Main.spriteBatch.GraphicsDevice.ScissorRectangle;
             try
             {
                 Main.spriteBatch.End();
-                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, Main.UIScaleMatrix);
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, Main.mapFullscreen ? Matrix.Identity : Matrix.CreateScale(Main.MapScale));
                 if (ImprovedCommunication.MapDrawRec.HasValue)
                     Main.spriteBatch.GraphicsDevice.ScissorRectangle = ImprovedCommunication.MapDrawRec.Value;
                 SpriteFrame frame = new SpriteFrame(1, 1);
@@ -287,7 +288,7 @@ namespace ImprovedCommunication
             }
             catch (Exception _) { }
 
-            Main.spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
+            Main.spriteBatch.GraphicsDevice.ScissorRectangle = rect;
             Main.spriteBatch.End();
             Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
         }
