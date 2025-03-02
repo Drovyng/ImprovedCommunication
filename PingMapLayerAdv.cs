@@ -151,11 +151,24 @@ namespace ImprovedCommunication
                 p.Send(-1, Main.myPlayer);
             }
         }
+        public void EditingPos(Vector2 position)
+        {
+            if (EditingSlot == 1000) return;
+            ImprovedCommunication.pings[EditingSlot].position = position;
+            if (Main.netMode == 1)
+            {
+                var p = Mod.GetPacket(13);
+                p.Write((byte)12);
+                p.Write(EditingSlot);
+                p.WriteVector2(position);
+                p.Send(-1, Main.myPlayer);
+            }
+        }
         public uint AddPingShort(Vector2 position)
         {
             if (Main.netMode == 1)
             {
-                var p = Mod.GetPacket(80);
+                var p = Mod.GetPacket(10);
                 p.Write((byte)1);
                 p.WriteVector2(position);
                 p.Send(-1, Main.myPlayer);
@@ -171,104 +184,110 @@ namespace ImprovedCommunication
         public override void Draw(ref MapOverlayDrawContext context, ref string text)
         {
             var cfg = ICConfig.Instance;
-
-            Main.spriteBatch.End();
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, Main.UIScaleMatrix);
-            if (ImprovedCommunication.MapDrawRec.HasValue)
-                Main.spriteBatch.GraphicsDevice.ScissorRectangle = ImprovedCommunication.MapDrawRec.Value;
-            SpriteFrame frame = new SpriteFrame(1, 1);
-            if (!Main.mapFullscreen)
+            try
             {
-                EditingSlot = 1000;
-                SelectedSlot = 1000;
-            }
-            if (EditingSlot != 1000 && ImprovedCommunication.pings[EditingSlot] == null)
-            {
-                EditingSlot = 1000;
-            }
-            var scale = 1.15f + (float)Math.Sin(Main._drawInterfaceGameTime.TotalGameTime.TotalSeconds * 6) * 0.15f;
-            SelectedSlot = 1000;
-
-            var cs = cfg.CorrectMapMarkersScale ? (Main.mapFullscreen ? cfg.ScaleCorrectedOnFullMap : cfg.ScaleCorrectedOnMinimap) * ImprovedCommunication.MapDrawScl / 8 : 1;
-            var id = -1;
-            foreach (var value in ImprovedCommunication.pings)
-            {
-                id++;
-                if (value == null) continue;
-
-                var hovered = context.Draw(
-                    ImprovedCommunication.MapPings[value.typo].Value,
-                    value.position,
-                    Color.Transparent,
-                    frame,
-                    value.scale * cs,
-                    value.scale * cs,
-                    Alignment.Center
-                ).IsMouseOver;
-
-                if (hovered && SelectedSlot == 1000 && EditingSlot == 1000)
+                Main.spriteBatch.End();
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, Main.UIScaleMatrix);
+                if (ImprovedCommunication.MapDrawRec.HasValue)
+                    Main.spriteBatch.GraphicsDevice.ScissorRectangle = ImprovedCommunication.MapDrawRec.Value;
+                SpriteFrame frame = new SpriteFrame(1, 1);
+                if (!Main.mapFullscreen)
                 {
-                    text = Language.GetTextValue("Mods.ImprovedCommunication.EditText");
-                    SelectedSlot = id;
+                    EditingSlot = 1000;
+                    SelectedSlot = 1000;
                 }
+                if (EditingSlot != 1000 && ImprovedCommunication.pings[EditingSlot] == null)
+                {
+                    EditingSlot = 1000;
+                }
+                var scale = 1.15f + (float)Math.Sin(Main._drawInterfaceGameTime.TotalGameTime.TotalSeconds * 6) * 0.15f;
+                SelectedSlot = 1000;
 
-                var s = scale;
-                if (!value.pulse) s = 1;
-                if (SelectedSlot == id) s *= 1.3f;
-                if (EditingSlot != 1000 && EditingSlot != id) s = 1f;
-                s *= value.scale;
+                var cs = cfg.CorrectMapMarkersScale ? (Main.mapFullscreen ? cfg.ScaleCorrectedOnFullMap : cfg.ScaleCorrectedOnMinimap) * ImprovedCommunication.MapDrawScl / 8 : 1;
+                var id = -1;
+                foreach (var value in ImprovedCommunication.pings)
+                {
+                    id++;
+                    if (value == null) continue;
 
-                if (value.typo != 13 || value.text.Length == 0) {
-                    context.Draw(
+                    var hovered = context.Draw(
                         ImprovedCommunication.MapPings[value.typo].Value,
                         value.position,
-                        value.GetColor(),
+                        Color.Transparent,
                         frame,
-                        s * cs,
-                        s * cs,
+                        value.scale * cs,
+                        value.scale * cs,
                         Alignment.Center
+                    ).IsMouseOver;
+
+                    if (hovered && SelectedSlot == 1000 && EditingSlot == 1000)
+                    {
+                        text = Language.GetTextValue("Mods.ImprovedCommunication.EditText");
+                        SelectedSlot = id;
+                    }
+
+                    var s = scale;
+                    if (!value.pulse) s = 1;
+                    if (SelectedSlot == id) s *= 1.3f;
+                    if (EditingSlot != 1000 && EditingSlot != id) s = 1f;
+                    s *= value.scale;
+
+                    if (value.typo != 13 || value.text.Length == 0)
+                    {
+                        context.Draw(
+                            ImprovedCommunication.MapPings[value.typo].Value,
+                            value.position,
+                            value.GetColor(),
+                            frame,
+                            s * cs,
+                            s * cs,
+                            Alignment.Center
+                        );
+                    }
+                    var s1 = ImprovedCommunication.MapDrawScl2 * (value.typo == 13 ? s : value.scale) * cs;
+                    var textPos = (value.position -
+                        Vector2.UnitY * ImprovedCommunication.MapPings[value.typo].Value.Height * 0.5f * (value.typo != 13 || value.text.Length == 0 ? 1 : 0) *
+                        (value.typo == 13 ? s : value.scale) * cs / ImprovedCommunication.MapDrawScl2 / ImprovedCommunication.MapDrawScl - ImprovedCommunication.MapDrawPos) *
+                        ImprovedCommunication.MapDrawScl + ImprovedCommunication.MapDrawOff;
+
+                    Utils.DrawBorderStringBig(
+                        Main.spriteBatch,
+                        value.text,
+                        textPos,
+                        Color.White,
+                        s1 * 0.4f,
+                        0.5f,
+                        value.typo == 13 ? 0.5f : 1f
                     );
                 }
-                var s1 = ImprovedCommunication.MapDrawScl2 * (value.typo == 13 ? s : value.scale) * cs;
-                var textPos = (value.position - 
-                    Vector2.UnitY * ImprovedCommunication.MapPings[value.typo].Value.Height * 0.5f * (value.typo != 13 || value.text.Length == 0 ? 1 : 0) * 
-                    (value.typo == 13 ? s : value.scale) * cs / ImprovedCommunication.MapDrawScl2 / ImprovedCommunication.MapDrawScl - ImprovedCommunication.MapDrawPos) * 
-                    ImprovedCommunication.MapDrawScl + ImprovedCommunication.MapDrawOff;
+                SpriteFrame frame2 = new SpriteFrame(1, 5);
+                DateTime now = DateTime.Now;
+                foreach (var item in pingsShort)
+                {
+                    var value = item.Value;
+                    double totalSeconds = (now - value.time).TotalSeconds;
 
-                Utils.DrawBorderStringBig(
-                    Main.spriteBatch,
-                    value.text,
-                    textPos,
-                    Color.White,
-                    s1 * 0.4f,
-                    0.5f,
-                    value.typo == 13 ? 0.5f : 1f
-                );
-            }
-            SpriteFrame frame2 = new SpriteFrame(1, 5);
-            DateTime now = DateTime.Now;
-            foreach (var item in pingsShort)
-            {
-                var value = item.Value;
-                double totalSeconds = (now - value.time).TotalSeconds;
+                    int num = (int)(totalSeconds * 10.0);
+                    frame2.CurrentRow = (byte)(num % frame2.RowCount);
 
-                int num = (int)(totalSeconds * 10.0);
-                frame2.CurrentRow = (byte)(num % frame2.RowCount);
+                    context.Draw(
+                        TextureAssets.MapPing.Value,
+                        value.position,
+                        frame2,
+                        Alignment.Center
+                    );
+                    if (totalSeconds >= 30)
+                        pingsShort.Remove(item.Id);
+                }
+                if (EditingSlot != 1000)
+                {
+                    text = Language.GetTextValue("Mods.ImprovedCommunication.EditingText");
+                    ImprovedCommunication.MapUIState.UpdateText(ref text);
+                }
+            }
+            catch (Exception _) { }
 
-                context.Draw(
-                    TextureAssets.MapPing.Value,
-                    value.position,
-                    frame2,
-                    Alignment.Center
-                );
-                if (totalSeconds >= 30)
-                    pingsShort.Remove(item.Id);
-            }
-            if (EditingSlot != 1000)
-            {
-                text = Language.GetTextValue("Mods.ImprovedCommunication.EditingText");
-                ImprovedCommunication.MapUIState.UpdateText(ref text);
-            }
+            Main.spriteBatch.GraphicsDevice.ScissorRectangle = new Rectangle(0, 0, Main.screenWidth, Main.screenHeight);
             Main.spriteBatch.End();
             Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
         }

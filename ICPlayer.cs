@@ -17,7 +17,7 @@ namespace ImprovedCommunication
         public Color cursorColorOut = Color.White;
         public override void PostUpdate()
         {
-            if (Main.netMode == 2) return;
+            if (Main.netMode == 2 || Player.whoAmI != Main.myPlayer) return;
             cursorColor = Main.mouseColor;
             if (Player.hasRainbowCursor)
                 cursorColor = Main.hslToRgb(Main.GlobalTimeWrappedHourly * 0.25f % 1f, 1f, 0.5f);
@@ -26,15 +26,15 @@ namespace ImprovedCommunication
             cursorColorOut = Main.MouseBorderColor;
 
             if (Main.netMode == 1)
-                SyncPlayer(-1, Main.myPlayer, false);
+                SyncPlayer(-1, -1, false);
         }
         public override void SendClientChanges(ModPlayer clientPlayer)
         {
-            SyncPlayer(-1, Main.myPlayer, false);
+            SyncPlayer(-1, -1, false);
         }
         public override void SyncPlayer(int toWho, int fromWho, bool newPlayer)
         {
-            ModPacket packet = Mod.GetPacket();
+            ModPacket packet = Mod.GetPacket(17);
             packet.Write((byte)0);
             packet.Write((byte)Player.whoAmI);
             packet.WriteVector2(cursorPosition);
@@ -57,7 +57,6 @@ namespace ImprovedCommunication
             PingMapLayerAdv.Instance.pingsShort.Clear();
             ModPacket packet = Mod.GetPacket();
             packet.Write((byte)11);
-            packet.Write((uint)0);
             packet.Send(256);
         }
     }

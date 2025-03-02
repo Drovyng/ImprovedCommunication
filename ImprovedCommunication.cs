@@ -18,7 +18,6 @@ using Terraria.Map;
 using Terraria.ModLoader;
 using Terraria.ModLoader.IO;
 using Terraria.UI;
-using Terraria.UI.Chat;
 
 namespace ImprovedCommunication
 {
@@ -81,7 +80,6 @@ namespace ImprovedCommunication
             {
                 var p1 = GetPacket(5);
                 p1.Write((byte)11);
-                p1.Write(PingCount());
                 p1.Send(256);
             }
 
@@ -118,7 +116,7 @@ namespace ImprovedCommunication
             if (PingMapLayerAdv.EditingSlot != 1000)
             {
                 if (MapUIState.root.IsMouseHovering) return;
-                pings[PingMapLayerAdv.EditingSlot].position = position;
+                PingMapLayerAdv.Instance.EditingPos(position);
                 return;
             }
             if (PingMapLayerAdv.SelectedSlot != 1000)
@@ -179,14 +177,35 @@ namespace ImprovedCommunication
                     plr.cursorColor = reader.ReadRGB();
                     plr.cursorColorOut = reader.ReadRGB();
                     plr.cursorColorOut.A = reader.ReadByte();
+
+                    if (Main.netMode == 2)
+                    {
+                        plr.SyncPlayer(-1, whoAmI, false);
+                    }
                     break;
-                case 1:
-                    PingMapLayerAdv.Instance.AddPingShort(reader.ReadVector2());
+                case 1:         // Client -> Client
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(8); p.Write((byte)1);
+                        p.WriteVector2(reader.ReadVector2());
+                        p.Send(-1, whoAmI);
+                        break;
+                    }
+                    PingMapLayerAdv.Instance.pingsShort.Add(new PingMapLayerAdv.PingShort(reader.ReadVector2()));
                     break;
-                case 2:
-                    pings[reader.ReadInt32()] = new PingMapLayerAdv.PingAdv(reader.ReadVector2());
+                case 2:         // Client -> All
+                    var j0_1 = reader.ReadInt32();
+                    var j0_2 = reader.ReadVector2();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(13); p.Write((byte)2);
+                        p.Write(j0_1);
+                        p.WriteVector2(j0_2);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j0_1] = new PingMapLayerAdv.PingAdv(j0_2);
                     break;
-                case 3:                                 // Sync
+                case 3:         // Server -> Client     // Sync
                     pings[reader.ReadInt32()] = new PingMapLayerAdv.PingAdv(reader.ReadVector2())
                     {
                         typo = reader.ReadByte(),
@@ -196,53 +215,112 @@ namespace ImprovedCommunication
                         text = reader.ReadString(),
                     };
                     break;
-                case 4:
+                case 4:         // Server -> Client
                     PingClear(reader.ReadInt32());
                     break;
-                case 5:
-                    pings[reader.ReadInt32()].text = reader.ReadString();
-                    break;
-                case 6:
-                    pings[reader.ReadInt32()].scale = reader.ReadSingle();
-                    break;
-                case 7:
-                    pings[reader.ReadInt32()].typo = reader.ReadByte();
-                    break;
-                case 8:
-                    pings[reader.ReadInt32()].color = reader.ReadByte();
-                    break;
-                case 9:
-                    pings[reader.ReadInt32()].pulse = reader.ReadBoolean();
-                    break;
-                case 10:
-                    pings[reader.ReadInt32()] = null;
-                    break;
-                case 11:
-                    var n2 = reader.ReadUInt32();    // Count
-                    var c = PingCount();
-                    if (n2 != c)
+                case 5:         // Client -> All
+                    var j1_1 = reader.ReadInt32();
+                    var j1_2 = reader.ReadString();
+                    if (Main.netMode == 2)
                     {
-                        var p1 = GetPacket(10);
-                        p1.Write((byte)4);
-                        p1.Write(PingCount());
-                        p1.Send(whoAmI);
-                        var i = 0;
-                        foreach (var value in pings)
-                        {
-                            if (value == null) continue;
-                            var p2 = GetPacket();
-                            p2.Write((byte)3);
-                            p2.Write(i);
-                            p2.WriteVector2(value.position);
-                            p2.Write((byte)value.typo);
-                            p2.Write((byte)value.color);
-                            p2.Write(value.pulse);
-                            p2.Write(value.scale);
-                            p2.Write(value.text);
-                            p2.Send(whoAmI);
-                            i++;
-                        }
+                        var p = GetPacket(); p.Write((byte)5);
+                        p.Write(j1_1);
+                        p.Write(j1_2);
+                        p.Send(-1, whoAmI);
                     }
+                    pings[j1_1].text = j1_2;
+                    break;
+                case 6:         // Client -> All
+                    var j2_1 = reader.ReadInt32();
+                    var j2_2 = reader.ReadSingle();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(9); p.Write((byte)6);
+                        p.Write(j2_1);
+                        p.Write(j2_2);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j2_1].scale = j2_2;
+                    break;
+                case 7:         // Client -> All
+                    var j3_1 = reader.ReadInt32();
+                    var j3_2 = reader.ReadByte();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(6); p.Write((byte)7);
+                        p.Write(j3_1);
+                        p.Write(j3_2);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j3_1].typo = j3_2;
+                    break;
+                case 8:         // Client -> All
+                    var j4_1 = reader.ReadInt32();
+                    var j4_2 = reader.ReadByte();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(6); p.Write((byte)8);
+                        p.Write(j4_1);
+                        p.Write(j4_2);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j4_1].color = j4_2;
+                    break;
+                case 9:         // Client -> All
+                    var j5_1 = reader.ReadInt32();
+                    var j5_2 = reader.ReadBoolean();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(6); p.Write((byte)9);
+                        p.Write(j5_1);
+                        p.Write(j5_2);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j5_1].pulse = j5_2;
+                    break;
+                case 10:        // Client -> All
+                    var j6_1 = reader.ReadInt32();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(6); p.Write((byte)10);
+                        p.Write(j6_1);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j6_1] = null;
+                    break;
+                case 11:        // Client -> Server
+                    var p1 = GetPacket(10);
+                    p1.Write((byte)4);
+                    p1.Write(PingCount());
+                    p1.Send(whoAmI);
+                    var i = 0;
+                    foreach (var value in pings)
+                    {
+                        if (value == null) continue;
+                        var p2 = GetPacket();
+                        p2.Write((byte)3);
+                        p2.Write(i);
+                        p2.WriteVector2(value.position);
+                        p2.Write((byte)value.typo);
+                        p2.Write((byte)value.color);
+                        p2.Write(value.pulse);
+                        p2.Write(value.scale);
+                        p2.Write(value.text);
+                        p2.Send(whoAmI);
+                        i++;
+                    }
+                    break;
+                case 12:        // Client -> All
+                    var j7_1 = reader.ReadInt32();
+                    var j7_2 = reader.ReadVector2();
+                    if (Main.netMode == 2)
+                    {
+                        var p = GetPacket(13); p.Write((byte)12);
+                        p.Write(j7_1);
+                        p.WriteVector2(j7_2);
+                        p.Send(-1, whoAmI);
+                    }
+                    pings[j7_1].position = j7_2;
                     break;
             }
         }
@@ -276,7 +354,6 @@ namespace ImprovedCommunication
             ImprovedCommunication.PingClear();
             ModPacket packet = Mod.GetPacket();
             packet.Write((byte)11);
-            packet.Write((uint)0);
             packet.Send(256);
             if (PingMapLayerAdv.Instance == null) return;
             PingMapLayerAdv.Instance.pingsShort.Clear();
@@ -404,93 +481,100 @@ namespace ImprovedCommunication
         public bool DrawMapPings()
         {
             if (PingMapLayerAdv.Instance == null) return true;
-            Main.spriteBatch.End();
-            Vector2 vector2 = new Vector2(Main.instance.GraphicsDevice.Viewport.Width, -Main.instance.GraphicsDevice.Viewport.Height) * 0.5f;
-            Vector2 translation = vector2 - vector2 / Main.GameViewMatrix.Zoom * new Vector2(1, 1);
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
-            var cfg = ICConfig.Instance;
-
-            if (!cfg.ShowInworldMarkers && !cfg.ShowInworldTextMarkers)
-                goto SkipBasicPings;
-
-            // The FIRST time i use "goto" for about 9 years 20.02.2025
-
-            var scale = 1.15f + (float)Math.Sin(Main._drawInterfaceGameTime.TotalGameTime.TotalSeconds * 6) * 0.15f;
-
-            var yScale = Main.ReverseGravitySupport(Vector2.Zero).Y == 0 ? 1 : -1;
-
-            foreach (var value in ImprovedCommunication.pings)
+            try
             {
-                if (value == null) continue;
-                var pos = Main.ReverseGravitySupport(value.position.ToWorldCoordinates(0, 0) - Main.screenPosition);
+                Main.spriteBatch.End();
+                Vector2 vector2 = new Vector2(Main.instance.GraphicsDevice.Viewport.Width, -Main.instance.GraphicsDevice.Viewport.Height) * 0.5f;
+                Vector2 translation = vector2 - vector2 / Main.GameViewMatrix.Zoom * new Vector2(1, 1);
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.GameViewMatrix.ZoomMatrix);
+                var cfg = ICConfig.Instance;
 
-                var s = scale;
-                if (!value.pulse) s = 1;
-                s *= value.scale;
+                if (!cfg.ShowInworldMarkers && !cfg.ShowInworldTextMarkers)
+                    goto SkipBasicPings;
 
-                if (value.typo == 13 && (value.text.Length == 0 || !cfg.ShowInworldTextMarkers))
-                    continue;
+                // The FIRST time i use "goto" for about 9 years 20.02.2025
 
-                if (value.typo != 13 && !cfg.ShowInworldMarkers)
-                    continue;
+                var scale = 1.15f + (float)Math.Sin(Main._drawInterfaceGameTime.TotalGameTime.TotalSeconds * 6) * 0.15f;
 
-                if (value.typo != 13 || value.text.Length == 0)
+                var yScale = Main.ReverseGravitySupport(Vector2.Zero).Y == 0 ? 1 : -1;
+
+                foreach (var value in ImprovedCommunication.pings)
                 {
+                    if (value == null) continue;
+                    var pos = Main.ReverseGravitySupport(value.position.ToWorldCoordinates(0, 0) - Main.screenPosition);
+
+                    var s = scale;
+                    if (!value.pulse) s = 1;
+                    s *= value.scale;
+
+                    if (value.typo == 13 && (value.text.Length == 0 || !cfg.ShowInworldTextMarkers))
+                        continue;
+
+                    if (value.typo != 13 && !cfg.ShowInworldMarkers)
+                        continue;
+
+                    if (value.typo != 13 || value.text.Length == 0)
+                    {
+                        Main.spriteBatch.Draw(
+                            ImprovedCommunication.MapPings[value.typo].Value,
+                            pos,
+                            null,
+                            value.GetColor(),
+                            0,
+                            ImprovedCommunication.MapPings[value.typo].Value.Size() * 0.5f,
+                            s * 2,
+                            Main.ReverseGravitySupport(Vector2.Zero).Y == 0 ? SpriteEffects.None : SpriteEffects.FlipVertically,
+                            0
+                        );
+                    }
+                    var s1 = value.typo == 13 ? s : value.scale;
+                    var textPos = pos - Vector2.UnitY * (ImprovedCommunication.MapPings[value.typo].Value.Height * 0.5f * (value.typo != 13 || value.text.Length == 0 ? 1 : 0)) * s1 * 2 * yScale;
+
+                    if (value.typo != 13 && !cfg.ShowInworldMarkersNames)
+                        continue;
+
+                    ImprovedCommunication.DrawBorderStringBigInv(
+                        Main.spriteBatch,
+                        value.text,
+                        textPos,
+                        Color.White,
+                        s1 * 0.8f,
+                        Main.ReverseGravitySupport(Vector2.Zero).Y != 0,
+                        0.5f,
+                        value.typo == 13 ? 0.5f : 1f * yScale
+                    );
+                }
+            SkipBasicPings:
+                SpriteFrame frame2 = new SpriteFrame(1, 5);
+                DateTime now = DateTime.Now;
+                foreach (var item in PingMapLayerAdv.Instance.pingsShort)
+                {
+                    var value = item.Value;
+
+                    var pos = value.position.ToWorldCoordinates(0, 0) - Main.screenPosition;
+
+                    double totalSeconds = (now - value.time).TotalSeconds;
+
+                    int num = (int)(totalSeconds * 10.0);
+                    frame2.CurrentRow = (byte)(num % frame2.RowCount);
+                    var rect = frame2.GetSourceRectangle(TextureAssets.MapPing.Value);
                     Main.spriteBatch.Draw(
-                        ImprovedCommunication.MapPings[value.typo].Value,
+                        TextureAssets.MapPing.Value,
                         pos,
-                        null,
-                        value.GetColor(),
+                        rect,
+                        Color.White,
                         0,
-                        ImprovedCommunication.MapPings[value.typo].Value.Size() * 0.5f,
-                        s * 2,
+                        rect.Size() * 0.5f,
+                        2,
                         Main.ReverseGravitySupport(Vector2.Zero).Y == 0 ? SpriteEffects.None : SpriteEffects.FlipVertically,
                         0
                     );
                 }
-                var s1 = value.typo == 13 ? s : value.scale;
-                var textPos = pos - Vector2.UnitY * (ImprovedCommunication.MapPings[value.typo].Value.Height * 0.5f * (value.typo != 13 || value.text.Length == 0 ? 1 : 0)) * s1 * 2 * yScale;
-
-                if (value.typo != 13 && !cfg.ShowInworldMarkersNames)
-                    continue;
-
-                ImprovedCommunication.DrawBorderStringBigInv(
-                    Main.spriteBatch,
-                    value.text,
-                    textPos,
-                    Color.White,
-                    s1 * 0.8f,
-                    Main.ReverseGravitySupport(Vector2.Zero).Y != 0,
-                    0.5f,
-                    value.typo == 13 ? 0.5f : 1f * yScale
-                );
             }
-            SkipBasicPings:
-            SpriteFrame frame2 = new SpriteFrame(1, 5);
-            DateTime now = DateTime.Now;
-            foreach (var item in PingMapLayerAdv.Instance.pingsShort)
-            {
-                var value = item.Value;
+            catch (Exception _) { }
 
-                var pos = value.position.ToWorldCoordinates(0, 0) - Main.screenPosition;
-
-                double totalSeconds = (now - value.time).TotalSeconds;
-
-                int num = (int)(totalSeconds * 10.0);
-                frame2.CurrentRow = (byte)(num % frame2.RowCount);
-                var rect = frame2.GetSourceRectangle(TextureAssets.MapPing.Value);
-                Main.spriteBatch.Draw(
-                    TextureAssets.MapPing.Value,
-                    pos,
-                    rect,
-                    Color.White,
-                    0,
-                    rect.Size() * 0.5f,
-                    2,
-                    Main.ReverseGravitySupport(Vector2.Zero).Y == 0 ? SpriteEffects.None : SpriteEffects.FlipVertically,
-                    0
-                );
-            }
+            Main.spriteBatch.End();
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
 
             return true;
         }
