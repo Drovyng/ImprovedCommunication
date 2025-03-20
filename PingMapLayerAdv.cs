@@ -178,17 +178,36 @@ namespace ImprovedCommunication
 
         private static readonly RasterizerState OverflowHiddenRasterizerState = new RasterizerState
         {
-            CullMode = CullMode.None,
+            CullMode = CullMode.CullCounterClockwiseFace,
             ScissorTestEnable = true
         };
         public override void Draw(ref MapOverlayDrawContext context, ref string text)
         {
             var cfg = ICConfig.Instance;
             var rect = Main.spriteBatch.GraphicsDevice.ScissorRectangle;
+            var num23453 = Main.mapFullscreen ? Main.mapFullscreenScale : ((Main.mapStyle != 1) ? Main.mapOverlayScale : Main.mapMinimapScale);
+            var scl = Main.UIScale;
+            if (!Main.mapFullscreen && Main.mapStyle == 1)
+                scl *= Main.MapScale;
+            if (Main.mapFullscreen)
+                scl = 1;
+            var mat = Matrix.CreateScale(scl);
+
+            if (ImprovedCommunication.MapDrawRec == null && !Main.mapFullscreen)
+            {
+                var vec1 = new Vector2(Main.miniMapX, Main.miniMapY);
+                var vec2 = vec1 + new Vector2(Main.miniMapWidth, Main.miniMapHeight);
+
+                vec1 = Vector2.Transform(vec1, mat);
+                vec2 = Vector2.Transform(vec2, mat);
+
+                ImprovedCommunication.MapDrawRec = new Rectangle((int)vec1.X, (int)vec1.Y, (int)(vec2.X - vec1.X), (int)(vec2.Y - vec1.Y));
+            }
+
             try
             {
                 Main.spriteBatch.End();
-                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, Main.mapFullscreen ? Matrix.Identity : Matrix.CreateScale(Main.MapScale));
+                Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.PointClamp, DepthStencilState.None, OverflowHiddenRasterizerState, null, mat);
                 if (ImprovedCommunication.MapDrawRec.HasValue)
                     Main.spriteBatch.GraphicsDevice.ScissorRectangle = ImprovedCommunication.MapDrawRec.Value;
                 SpriteFrame frame = new SpriteFrame(1, 1);
@@ -251,16 +270,20 @@ namespace ImprovedCommunication
                         (value.typo == 13 ? s : value.scale) * cs / ImprovedCommunication.MapDrawScl2 / ImprovedCommunication.MapDrawScl - ImprovedCommunication.MapDrawPos) *
                         ImprovedCommunication.MapDrawScl + ImprovedCommunication.MapDrawOff;
 
-                    Utils.DrawBorderStringBig(
-                        Main.spriteBatch,
-                        value.text,
-                        textPos,
-                        Color.White,
-                        s1 * 0.4f,
-                        0.5f,
-                        value.typo == 13 ? 0.5f : 1f
-                    );
+                    if (!ImprovedCommunication.MapDrawRec.HasValue || ImprovedCommunication.MapDrawRec.Value.Contains(textPos.ToPoint()))
+                    {
+                        Utils.DrawBorderStringBig(
+                            Main.spriteBatch,
+                            value.text,
+                            textPos,
+                            Color.White,
+                            s1 * 0.4f,
+                            0.5f,
+                            value.typo == 13 ? 0.5f : 1f
+                        );
+                    }
                 }
+
                 SpriteFrame frame2 = new SpriteFrame(1, 5);
                 DateTime now = DateTime.Now;
                 foreach (var item in pingsShort)
@@ -290,7 +313,7 @@ namespace ImprovedCommunication
 
             Main.spriteBatch.GraphicsDevice.ScissorRectangle = rect;
             Main.spriteBatch.End();
-            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
+            Main.spriteBatch.Begin(SpriteSortMode.Deferred, BlendState.AlphaBlend, SamplerState.LinearClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, mat);
         }
     }
 }

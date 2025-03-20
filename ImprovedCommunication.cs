@@ -13,6 +13,7 @@ using Terraria;
 using Terraria.Chat;
 using Terraria.DataStructures;
 using Terraria.GameContent;
+using Terraria.GameInput;
 using Terraria.Localization;
 using Terraria.Map;
 using Terraria.ModLoader;
@@ -87,6 +88,8 @@ namespace ImprovedCommunication
             orig(self, gameTime);
 
             if (!Main.mapFullscreen || PingMapLayerAdv.Instance == null) return;
+
+            PlayerInput.SetZoom_UI();
 
             Main.spriteBatch.End();
             Main.spriteBatch.Begin(SpriteSortMode.Deferred, null, SamplerState.PointClamp, DepthStencilState.None, RasterizerState.CullCounterClockwise, null, Main.UIScaleMatrix);
